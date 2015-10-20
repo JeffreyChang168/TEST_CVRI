@@ -1,0 +1,119 @@
+C51 COMPILER V9.54   COMMON                                                                10/20/2015 11:39:05 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE COMMON
+OBJECT MODULE PLACED IN .\OBJ\COMMON.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE COMMON.C OPTIMIZE(9,SIZE) REGFILE(.\OBJ\TEST_CVRI.ORC) BROWSE NOAREGS PR
+                    -INT(.\LST\COMMON.lst) TABS(2) OBJECT(.\OBJ\COMMON.obj)
+
+line level    source
+
+   1          /* **********************************************************************
+   2          
+   3                   Copyright (c) 2002-2012 Beyond Innovation Technology Co., Ltd
+   4          
+   5                   All rights are reserved. Reproduction in whole or in parts is
+   6              prohibited without the prior written consent of the copyright owner.
+   7          
+   8             ----------------------------------------------------------------------
+   9              Software License Agreement
+  10          
+  11              The software supplied herewith by Beyond Innovation Technology Co., Ltd
+  12              (the "Company") is intended and supplied to you, the Company's
+  13              customer, for use solely and exclusively on BiTEK products.
+  14          
+  15              The software is owned by the Company and/or its supplier, and is
+  16              protected under applicable copyright laws. All rights are reserved.
+  17              Any use in violation of the foregoing restrictions may subject the
+  18              user to criminal sanctions under applicable laws, as well as to
+  19              civil liability for the breach of the terms and conditions of this
+  20              license.
+  21          
+  22              THIS SOFTWARE IS PROVIDED IN AN "AS IS" CONDITION. NO WARRANTIES,
+  23              WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT NOT LIMITED
+  24              TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+  25              PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. THE COMPANY SHALL NOT,
+  26              IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL OR
+  27              CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  28          
+  29             ----------------------------------------------------------------------
+  30          
+  31              Module: COMMON.C -
+  32          
+  33              Purpose: Implementation of COMMON.
+  34          
+  35              Version: 0.01                                   09:50AM  2012/05/02
+  36          
+  37              Compiler: Keil 8051 C Compiler v9.03
+  38          
+  39              Reference:
+  40          
+  41             ----------------------------------------------------------------------
+  42              Modification:
+  43          
+  44              v0.01 09:50AM  2012/05/02 Jeffrey Chang
+  45              Reason:
+  46                  1. Original.
+  47              Solution:
+  48          
+  49             ********************************************************************** */
+  50          
+  51          #define _COMMON_C_
+  52          
+  53          /* ------------------------------------
+  54              Header Files
+C51 COMPILER V9.54   COMMON                                                                10/20/2015 11:39:05 PAGE 2   
+
+  55             ------------------------------------ */
+  56          #include "common.h"
+  57          
+  58          
+  59          /* ------------------------------------
+  60              Macro Definitions
+  61             ------------------------------------ */
+  62          
+  63          
+  64          /* ------------------------------------
+  65              Type Definitions
+  66             ------------------------------------ */
+  67          
+  68          
+  69          /* ------------------------------------
+  70              Variables Definitions
+  71             ------------------------------------ */
+  72          
+  73          /* ------------------------------------
+  74              Function Prototypes
+  75             ------------------------------------ */
+  76          
+  77          /* -------------------------------------------------------------------
+  78              Name:  -
+  79              Purpose: .
+  80              Passed: None.
+  81              Returns: None.
+  82              Notes:
+  83             ------------------------------------------------------------------- */
+  84          
+  85          
+  86          /* **********************************************************************
+  87          
+  88              Description:
+  89          
+  90          
+  91             ********************************************************************** */
+  92          
+  93          /* %% End Of File %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

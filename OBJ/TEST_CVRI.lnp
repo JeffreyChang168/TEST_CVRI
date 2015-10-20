@@ -1,0 +1,12 @@
+".\OBJ\BITEK.obj",
+".\OBJ\COMMON.obj",
+".\OBJ\MAIN.obj",
+".\OBJ\MCU.obj",
+".\OBJ\OSD.obj",
+".\OBJ\POR.obj",
+".\OBJ\SARADC.obj",
+".\OBJ\TIMER.obj",
+".\OBJ\VP.obj" 
+TO ".\OBJ\TEST_CVRI" REGFILE (.\OBJ\TEST_CVRI.ORC) 
+PRINT(".\LST\TEST_CVRI.m51") RAMSIZE(256) 
+XDATA( 0X7C00-0X7FFF )

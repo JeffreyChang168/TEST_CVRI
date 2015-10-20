@@ -1,0 +1,239 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        10/20/2015  11:39:08  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\KEIL_V5\C51\BIN\BL51.EXE .\OBJ\BITEK.obj, .\OBJ\COMMON.obj, .\OBJ\MAIN.obj, .\OBJ\MCU.obj, .\OBJ\OSD.obj, .\OBJ\POR.o
+>> bj, .\OBJ\SARADC.obj, .\OBJ\TIMER.obj, .\OBJ\VP.obj TO .\OBJ\TEST_CVRI REGFILE (.\OBJ\TEST_CVRI.ORC) PRINT (.\LST\TES
+>> T_CVRI.m51) RAMSIZE (256) XDATA (0X7C00-0X7FFF)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\OBJ\BITEK.obj (BITEK)
+  .\OBJ\COMMON.obj (COMMON)
+  .\OBJ\MAIN.obj (MAIN)
+  .\OBJ\MCU.obj (MCU)
+  .\OBJ\OSD.obj (OSD)
+  .\OBJ\POR.obj (POR)
+  .\OBJ\SARADC.obj (SARADC)
+  .\OBJ\TIMER.obj (TIMER)
+  .\OBJ\VP.obj (VP)
+  C:\KEIL_V5\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL_V5\C51\LIB\C51S.LIB (?C?UIDIV)
+  C:\KEIL_V5\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\OBJ\TEST_CVRI (BITEK)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            REG     0008H     0008H     ABSOLUTE     "REG BANK 1"
+            REG     0010H     0008H     ABSOLUTE     "REG BANK 2"
+            DATA    0018H     0008H     UNIT         _DATA_GROUP_
+            BIT     0020H.0   0000H.3   UNIT         ?BI?TIMER
+            BIT     0020H.3   0000H.1   UNIT         ?BI?OSD
+            BIT     0020H.4   0000H.1   UNIT         ?BI?SARADC
+            BIT     0020H.5   0000H.1   UNIT         ?BI?VP
+                    0020H.6   0000H.2                *** GAP ***
+            DATA    0021H     0009H     UNIT         ?DT?SARADC
+            DATA    002AH     0006H     UNIT         ?DT?TIMER
+            DATA    0030H     0003H     UNIT         ?DT?COMMON
+            DATA    0033H     0003H     UNIT         ?DT?MCU
+            DATA    0036H     0001H     UNIT         ?DT?OSD
+            DATA    0037H     0001H     UNIT         ?DT?VP
+            IDATA   0038H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0003H     ABSOLUTE     
+                    0006H     0005H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+                    000EH     0005H                  *** GAP ***
+            CODE    0013H     0003H     ABSOLUTE     
+                    0016H     0005H                  *** GAP ***
+            CODE    001BH     0003H     ABSOLUTE     
+            CODE    001EH     000AH     UNIT         ?PR?_VP_SETCONTRAST?VP
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2015  11:39:08  PAGE 2
+
+
+                    0028H     0003H                  *** GAP ***
+            CODE    002BH     0003H     ABSOLUTE     
+            CODE    002EH     01D1H     UNIT         ?CO?VP
+            CODE    01FFH     00AFH     UNIT         ?PR?SARADC_VR_TASK?SARADC
+            CODE    02AEH     00A9H     UNIT         ?PR?OSD_INIT?OSD
+            CODE    0357H     008CH     UNIT         ?C_C51STARTUP
+            CODE    03E3H     0085H     UNIT         ?PR?MAIN?MAIN
+            CODE    0468H     006EH     UNIT         ?PR?_OSD_SHOWVALUE?OSD
+            CODE    04D6H     0055H     UNIT         ?C?LIB_CODE
+            CODE    052BH     004BH     UNIT         ?CO?OSD
+            CODE    0576H     0048H     UNIT         ?PR?VP_STD_DETECT?VP
+            CODE    05BEH     0045H     UNIT         ?PR?MCU_INT0_ISR?MCU
+            CODE    0603H     0040H     UNIT         ?PR?VP_INIT?VP
+            CODE    0643H     003FH     UNIT         ?PR?_OSD_SHOWHEX?OSD
+            CODE    0682H     003CH     UNIT         ?PR?SARADC_INIT?SARADC
+            CODE    06BEH     003BH     UNIT         ?PR?MCU_INT1_ISR?MCU
+            CODE    06F9H     0035H     UNIT         ?PR?DISPATCH_TASK_BL_CNT?MAIN
+            CODE    072EH     002FH     UNIT         ?PR?_BITEK_TXBURST?BITEK
+            CODE    075DH     002AH     UNIT         ?PR?TIMER_INIT?TIMER
+            CODE    0787H     0028H     UNIT         ?PR?SARADC_VR_VALUE?SARADC
+            CODE    07AFH     0027H     UNIT         ?CO?MAIN
+            CODE    07D6H     0027H     UNIT         ?CO?SARADC
+            CODE    07FDH     0026H     UNIT         ?PR?_OSD_SHOWPROGRESSBAR?OSD
+            CODE    0823H     0023H     UNIT         ?PR?TIMER1_ISR?TIMER
+            CODE    0846H     0020H     UNIT         ?PR?MCU_INT0_RESET?MCU
+            CODE    0866H     001FH     UNIT         ?PR?_BITEK_TXREPEAT?BITEK
+            CODE    0885H     0019H     UNIT         ?PR?MCU_SETUP_INT?MCU
+            CODE    089EH     0018H     UNIT         ?PR?_VP_SETCOLORKILLER?VP
+            CODE    08B6H     0014H     UNIT         ?PR?_VP_SETSATURATION?VP
+            CODE    08CAH     0012H     UNIT         ?PR?MCU_INT1_RESET?MCU
+            CODE    08DCH     0012H     UNIT         ?PR?POR_INIT?POR
+            CODE    08EEH     0011H     UNIT         ?PR?TIMER2_ISR?TIMER
+            CODE    08FFH     000FH     UNIT         ?PR?TIMER0_ISR?TIMER
+            CODE    090EH     0009H     UNIT         ?PR?MCU_INIT?MCU
+            CODE    0917H     0008H     UNIT         ?PR?_VP_SETBRIGHTNESS?VP
+            CODE    091FH     0007H     UNIT         ?PR?OSD
+            CODE    0926H     0006H     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   .\OBJ\TEST_CVRI (BITEK)
+
+
+SEGMENT                                 DATA_GROUP 
+  +--> CALLED SEGMENT                 START    LENGTH
+-----------------------------------------------------
+?PR?MCU_INT0_ISR?MCU                  -----    -----
+  +--> ?PR?_OSD_SHOWHEX?OSD
+  +--> ?PR?MCU_INT0_RESET?MCU
+
+?PR?_OSD_SHOWHEX?OSD                  -----    -----
+  +--> ?PR?OSD
+
+*** NEW ROOT ***************************************************
+
+?PR?MCU_INT1_ISR?MCU                  -----    -----
+  +--> ?PR?MCU_INT1_RESET?MCU
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2015  11:39:08  PAGE 3
+
+
+
+*** NEW ROOT ***************************************************
+
+?C_C51STARTUP                         -----    -----
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN                         -----    -----
+  +--> ?PR?POR_INIT?POR
+  +--> ?PR?_OSD_SHOWHEX?OSD
+  +--> ?PR?_OSD_SHOWVALUE?OSD
+  +--> ?PR?DISPATCH_TASK_BL_CNT?MAIN
+  +--> ?PR?VP_STD_DETECT?VP
+  +--> ?PR?SARADC_VR_TASK?SARADC
+
+?PR?POR_INIT?POR                      -----    -----
+  +--> ?PR?VP_INIT?VP
+  +--> ?PR?MCU_INIT?MCU
+  +--> ?PR?TIMER_INIT?TIMER
+  +--> ?PR?SARADC_INIT?SARADC
+  +--> ?PR?OSD_INIT?OSD
+  +--> ?PR?MCU_SETUP_INT?MCU
+
+?PR?VP_INIT?VP                        -----    -----
+  +--> ?CO?VP
+  +--> ?PR?_BITEK_TXBURST?BITEK
+
+?PR?_BITEK_TXBURST?BITEK              0019H    0002H
+
+?PR?OSD_INIT?OSD                      -----    -----
+  +--> ?CO?OSD
+  +--> ?PR?_BITEK_TXBURST?BITEK
+  +--> ?PR?_BITEK_TXREPEAT?BITEK
+
+?PR?_BITEK_TXREPEAT?BITEK             0019H    0002H
+
+?PR?MCU_SETUP_INT?MCU                 -----    -----
+  +--> ?PR?MCU_INT0_RESET?MCU
+  +--> ?PR?MCU_INT1_RESET?MCU
+
+?PR?_OSD_SHOWVALUE?OSD                0019H    0007H
+  +--> ?PR?OSD
+
+?PR?DISPATCH_TASK_BL_CNT?MAIN         -----    -----
+  +--> ?PR?_BITEK_TXREPEAT?BITEK
+  +--> ?CO?MAIN
+  +--> ?PR?_BITEK_TXBURST?BITEK
+
+?PR?VP_STD_DETECT?VP                  -----    -----
+  +--> ?CO?VP
+  +--> ?PR?_BITEK_TXBURST?BITEK
+
+?PR?SARADC_VR_TASK?SARADC             0018H    0001H
+  +--> ?PR?_OSD_SHOWHEX?OSD
+  +--> ?PR?SARADC_VR_VALUE?SARADC
+  +--> ?PR?_BITEK_TXREPEAT?BITEK
+  +--> ?CO?SARADC
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2015  11:39:08  PAGE 4
+
+
+  +--> ?PR?_BITEK_TXBURST?BITEK
+  +--> ?PR?_OSD_SHOWVALUE?OSD
+  +--> ?PR?_OSD_SHOWPROGRESSBAR?OSD
+  +--> ?PR?_VP_SETBRIGHTNESS?VP
+  +--> ?PR?_VP_SETCONTRAST?VP
+  +--> ?PR?_VP_SETSATURATION?VP
+
+?PR?_VP_SETSATURATION?VP              0019H    0001H
+  +--> ?PR?_VP_SETCOLORKILLER?VP
+
+
+
+SYMBOL TABLE OF MODULE:  .\OBJ\TEST_CVRI (BITEK)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C?UIDIV
+  C:04D6H         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+
+
+FUNCTION REGISTER MASKS
+
+
+FUNCTION . . . . . . . . REG MASK
+---------------------------------
+
+DISPATCH_TASK_BL_CNT . . @0xe37f
+MCU_INIT . . . . . . . . @0x8000
+MCU_INT0_RESET . . . . . @0xe300
+MCU_INT1_RESET . . . . . @0xe300
+MCU_SETUP_INT. . . . . . @0xe300
+OSD_INIT . . . . . . . . @0xe37f
+POR_INIT . . . . . . . . @0xe37f
+SARADC_INIT. . . . . . . @0xe300
+SARADC_VR_VALUE. . . . . @0xf401
+TIMER0_ISR . . . . . . . @0xe000
+TIMER1_ISR . . . . . . . @0xe000
+TIMER2_ISR . . . . . . . @0xe000
+TIMER_INIT . . . . . . . @0xa300
+VP_INIT. . . . . . . . . @0xe37f
+VP_STD_DETECT. . . . . . @0xf37f
+_BITEK_TXBURST . . . . . @0xe37b
+_BITEK_TXREPEAT. . . . . @0xe307
+_OSD_SHOWHEX . . . . . . @0xf303
+_OSD_SHOWPROGRESSBAR . . @0xf307
+_OSD_SHOWVALUE . . . . . @0xf78f
+_VP_SETBRIGHTNESS. . . . @0xf300
+_VP_SETCOLORKILLER . . . @0xe302
+_VP_SETCONTRAST. . . . . @0xf300
+
+Program Size: data=56.6 xdata=0 code=2330
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

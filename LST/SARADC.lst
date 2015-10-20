@@ -1,0 +1,531 @@
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE SARADC
+OBJECT MODULE PLACED IN .\OBJ\SARADC.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE SARADC.C OPTIMIZE(9,SIZE) REGFILE(.\OBJ\TEST_CVRI.ORC) BROWSE NOAREGS PR
+                    -INT(.\LST\SARADC.lst) TABS(2) OBJECT(.\OBJ\SARADC.obj)
+
+line level    source
+
+   1          /* **********************************************************************
+   2          
+   3                   Copyright (c) 2002-2013 Beyond Innovation Technology Co., Ltd
+   4          
+   5                   All rights are reserved. Reproduction in whole or in parts is
+   6              prohibited without the prior written consent of the copyright owner.
+   7          
+   8             ----------------------------------------------------------------------
+   9              Software License Agreement
+  10          
+  11              The software supplied herewith by Beyond Innovation Technology Co., Ltd
+  12              (the "Company") is intended and supplied to you, the Company's
+  13              customer, for use solely and exclusively on BiTEK products.
+  14          
+  15              The software is owned by the Company and/or its supplier, and is
+  16              protected under applicable copyright laws. All rights are reserved.
+  17              Any use in violation of the foregoing restrictions may subject the
+  18              user to criminal sanctions under applicable laws, as well as to
+  19              civil liability for the breach of the terms and conditions of this
+  20              license.
+  21          
+  22              THIS SOFTWARE IS PROVIDED IN AN "AS IS" CONDITION. NO WARRANTIES,
+  23              WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT NOT LIMITED
+  24              TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+  25              PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. THE COMPANY SHALL NOT,
+  26              IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL OR
+  27              CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  28          
+  29             ----------------------------------------------------------------------
+  30          
+  31              Module: SARADC.C -
+  32          
+  33              Purpose: Implementation of SARADC.
+  34          
+  35              Version: 0.02                                   04:33PM  2013/03/18
+  36          
+  37              Compiler: Keil 8051 C Compiler v9.51
+  38          
+  39              Reference:
+  40          
+  41             ----------------------------------------------------------------------
+  42              Modification:
+  43          
+  44              v0.01 04:33PM  2013/03/18 Jeffrey Chang
+  45              Reason:
+  46                  1. Original.
+  47              Solution:
+  48          
+  49             ----------------------------------------------------------------------
+  50              v0.02 10:53PM  2013/04/04 Jeffrey Chang
+  51              Reason:
+  52                  1. To add SARADC interrupt approach.
+  53              Solution:
+  54          
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 2   
+
+  55             ********************************************************************** */
+  56          
+  57          #define _SARADC_C_
+  58          
+  59          /* ------------------------------------
+  60              Header Files
+  61             ------------------------------------ */
+  62          #include "bit1618c.h"
+  63          #include "bitek.h"
+  64          #include "osd.h"
+  65          #include "saradc.h"
+  66          #include "timer.h"
+  67          #include "vp.h"
+  68          
+  69          
+  70          /* ------------------------------------
+  71              Macro Definitions
+  72             ------------------------------------ */
+  73          // OSD: 0..60
+  74          #define VR_LOW                  20
+  75          #define VR_HIGH                 200
+  76          #define VR_STEP                 3
+  77          
+  78          #define VR_LOW_BOUND            255         // VR Floating condition LOW boudn
+  79          #define VR_HIGH_BOUND           221         // VR dynamic range HIGH bound
+  80          #define VR_CRITERIA             (VR_LOW_BOUND + VR_HIGH_BOUND) / 2
+  81          #define VR_FLOAT                (256 - VR_CRITERIA)
+  82          #define VR_THRESHOLD            VR_STEP     // for Hysteresis
+  83          
+  84          #define VR_OSD_MIN              0
+  85          #define VR_OSD_DEFAULT          30
+  86          #define VR_OSD_MAX              60
+  87          
+  88          
+  89          /* ------------------------------------
+  90              Type Definitions
+  91             ------------------------------------ */
+  92          
+  93          
+  94          /* ------------------------------------
+  95              Variables Definitions
+  96             ------------------------------------ */
+  97          static  UB8 bVR_New;
+  98          static  UB8 abVR_Old[ SARADC_VR_SIZE ];
+  99          
+ 100          #if (SARADC_INT)
+ 101          static  UB8 abVR_1A2[ SARADC_VR_SIZE ] =
+ 102          {
+ 103              SARADC_OUT1,
+ 104              SARADC_OUT2,
+ 105              SARADC_OUT3,
+ 106          };
+ 107          #else
+              static  UB8 abVR_1A1[ SARADC_VR_SIZE ] =
+              {
+                  SARADC1_CH_VR1,
+                  SARADC1_CH_VR2,
+                  SARADC1_CH_VR3,
+              };
+              #endif
+ 115          
+ 116          #define TITLE_WIDTH         (10)
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 3   
+
+ 117          
+ 118          static UB8 CODE * CODE apbTitle[] =
+ 119          {
+ 120             //1234567890
+ 121              "Brightness",   // 0 MENU_BRIGHTNESS
+ 122              "Contrast  ",   // 1 MENU_CONTRAST
+ 123              "Saturation",   // 2 MENU_SATURATION
+ 124          };
+ 125          
+ 126          /* ------------------------------------
+ 127              Function Prototypes
+ 128             ------------------------------------ */
+ 129          void SARADC_VR_Update(void);
+ 130          UB8  SARADC_VR_Value(void);
+ 131          
+ 132          
+ 133          /* -------------------------------------------------------------------
+ 134              Name: SARADC_Init -
+ 135              Purpose: To initialize SARADC module.
+ 136              Passed: None.
+ 137              Returns: None.
+ 138              Notes:
+ 139             ------------------------------------------------------------------- */
+ 140          void SARADC_Init (void)
+ 141          {
+ 142   1          fSARADC_VR_Task = FALSE;
+ 143   1      
+ 144   1          BITEK_TxByte(BITEK_1A7_ADC_ATTR,        0x02);
+ 145   1          BITEK_TxByte(BITEK_1A8_ADC_COMP_ATTR1,  0x02);
+ 146   1      
+ 147   1          // To enable SARADC
+ 148   1          BITEK_TxByte(BITEK_00F_SARCLK_ATTR, BITEK_RxByte(BITEK_00F_SARCLK_ATTR) | BITEK_MASK_SARCLK_EN);
+ 149   1      
+ 150   1          // Set speed to 200kHz
+ 151   1          BITEK_TxByte(BITEK_19F_SARADC_ATTR, BITEK_MASK_SARADC_REF_SEL_H |
+ 156   1                                              BITEK_MASK_SARADC_REF_SEL_L |
+ 156   1                                              BITEK_MASK_SARADC_WRB       |
+ 156   1                                              BITEK_MASK_SARADC_RDB       |
+ 156   1                                              BITEK_MASK_SARADC_LOWSPEED
+ 156   1                      );
+ 157   1      
+ 158   1          #if (SARADC_IN_MODE == SARADC_IN_SINGLE)
+              
+                  BITEK_TxByte(BITEK_1A1_SARADC12_SEL, SARADC_IN_MODE  | SARADC2_CH1 | SARADC1_CH1);
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT_MODE | SARADC4_CH1 | SARADC3_CH1);
+              
+                  bSARADC_VR_CH   = SARADC_VR_BRIGHTNESS;
+              
+                  #elif ((SARADC_IN_MODE == SARADC_IN_DUAL)   ||  \
+                         (SARADC_IN_MODE == SARADC_IN_TRIPLE) ||  \
+                         (SARADC_IN_MODE == SARADC_IN_QUAD)           )
+ 168   1      
+ 169   1          BITEK_TxByte(BITEK_1A1_SARADC12_SEL, SARADC_IN_MODE  | SARADC2_CH  | SARADC1_CH);
+ 170   1          BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT_MODE | SARADC4_CH  | SARADC3_CH);
+ 171   1      
+ 172   1          BITEK_TxByte(BITEK_1A3_SARADC_SWITCH, 0x10);     // OK 06:54PM  2013/04/29
+ 173   1      
+ 174   1          #endif
+ 175   1      
+ 176   1      
+ 177   1          #if (SARADC_INT)
+ 178   1          // ADC1/2/3 threshold
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 4   
+
+ 179   1          BITEK_TxByte(BITEK_1A6_ADC_THD,  VR_THRESHOLD); // Delta >= VR_THRESHOLD
+ 180   1          BITEK_TxByte(BITEK_1A7_ADC_ATTR, 0x72);         // Loaded by Rising edge
+ 181   1          BITEK_TxByte(BITEK_1A7_ADC_ATTR, 0x02);
+ 182   1      
+ 183   1          // Clear  ADC1/2/3 flag
+ 184   1          BITEK_TxByte(BITEK_1A9_ADC_INT_ATTR, 0x07);
+ 185   1          // Enable ADC1/2/3 interrupt
+ 186   1          BITEK_TxByte(BITEK_1A9_ADC_INT_ATTR, 0x70);
+ 187   1          #endif
+ 188   1      } /* SARADC_Init */
+ 189          
+ 190          
+ 191          #if (SARADC_SCAN)
+              /* -------------------------------------------------------------------
+                  Name: SARADC_Scan -
+                  Purpose: SARADC process.
+                  Passed: None.
+                  Returns: None.
+                  Notes:
+                 ------------------------------------------------------------------- */
+              void SARADC_Scan (void)
+              {
+                  #if (SARADC_IN_MODE == SARADC_IN_SINGLE)
+                  UB8 bSARADC_New;
+              
+              
+                  bSARADC_New = BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB);
+              
+                  if (bSARADC_VR_CH == SARADC1_CH1)
+                  {
+                      #if (DEBUG_SARADC)
+                      OSD_ShowHex(VP_SHOW_SARADC1, bSARADC_New);
+                      #endif
+              
+                      bSARADC_VR_CH = SARADC1_CH2;
+                  }
+                  else if (bSARADC_VR_CH == SARADC1_CH2)
+                  {
+                      #if (DEBUG_SARADC)
+                      OSD_ShowHex(VP_SHOW_SARADC2, bSARADC_New);
+                      #endif
+              
+                      bSARADC_VR_CH = SARADC1_CH3;
+                  }
+                  else if (bSARADC_VR_CH == SARADC1_CH3)
+                  {
+                      #if (DEBUG_SARADC)
+                      OSD_ShowHex(VP_SHOW_SARADC3, bSARADC_New);
+                      #endif
+              
+                      bSARADC_VR_CH = SARADC1_CH1;
+                  }
+              
+                  // Update SARADC1 CH !
+                  BITEK_TxByte(BITEK_1A1_SARADC12_SEL, SARADC_IN_MODE | SARADC2_CH1 | bSARADC_VR_CH);
+              
+                  #elif (SARADC_IN_MODE == SARADC_IN_DUAL)
+              
+                  // SARADC1
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT1 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC1, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 5   
+
+                  #endif
+              
+                  // SARADC2
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT2 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC2, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+                  #elif (SARADC_IN_MODE == SARADC_IN_TRIPLE)
+              
+                  // SARADC1
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT1 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC1, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+                  // SARADC2
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT2 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC2, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+                  // SARADC3
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT3 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC3, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+              
+                  #elif (SARADC_IN_MODE == SARADC_IN_QUAD)
+              
+                  // SARADC1
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT1 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC1, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+                  // SARADC2
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT2 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC2, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+                  // SARADC3
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT3 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC3, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+                  // SARADC4
+                  BITEK_TxByte(BITEK_1A2_SARADC34_SEL, SARADC_OUT4 | SARADC4_CH  | SARADC3_CH);
+                  #if (DEBUG_SARADC)
+                  OSD_ShowHex(VP_SHOW_SARADC4, BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB));
+                  #endif
+              
+                  #endif
+              } /* SARADC_Scan */
+              #endif
+ 299          
+ 300          
+ 301          #if (SARADC_VR_TASK)
+ 302          /* -------------------------------------------------------------------
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 6   
+
+ 303              Name: SARADC_VR_Task -
+ 304              Purpose: VR process.
+ 305              Passed: None.
+ 306              Returns: None.
+ 307              Notes:
+ 308                  1) Get current VR raw.
+ 309                  2) Change VR channel.
+ 310                  3) Check whether it is floating.
+ 311                  4) Check whether its delta is over threshold.
+ 312                  5) Update VR raw.
+ 313                  6) Adjust VR value for OSD and Register.
+ 314             ------------------------------------------------------------------- */
+ 315          void SARADC_VR_Task (void)
+ 316          {
+ 317   1          #if (SARADC_INT)
+ 318   1          if (bSARADC_VR_Flag)
+ 319   1          {
+ 320   2              UB8 bVR_Value;
+ 321   2      
+ 322   2      
+ 323   2              if (bSARADC_VR_Flag & 0x01)
+ 324   2              {
+ 325   3                  bSARADC_VR_CH = SARADC_VR_BRIGHTNESS;
+ 326   3                  bSARADC_VR_Flag &= 0xFE;
+ 327   3              }
+ 328   2              else if (bSARADC_VR_Flag & 0x02)
+ 329   2              {
+ 330   3                  bSARADC_VR_CH = SARADC_VR_CONTRAST;
+ 331   3                  bSARADC_VR_Flag &= 0xFD;
+ 332   3              }
+ 333   2              else
+ 334   2              {
+ 335   3                  bSARADC_VR_CH = SARADC_VR_SATURATION;
+ 336   3                  bSARADC_VR_Flag &= 0xFB;
+ 337   3              }
+ 338   2      
+ 339   2              BITEK_TxByte(BITEK_1A2_SARADC34_SEL, abVR_1A2[ bSARADC_VR_CH ] | SARADC4_CH | SARADC3_CH);
+ 340   2              bVR_New = BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB);
+ 341   2      
+ 342   2              #if (DEBUG_SARADC)
+ 343   2              OSD_ShowHex(VP_SHOW_SARADC, bVR_New);
+ 344   2              #endif
+ 345   2      
+ 346   2      
+ 347   2              bVR_Value = SARADC_VR_Value();
+ 348   2      
+ 349   2              BITEK_TxRepeat(VP_SHOW_OSD2, OSD2_AREA, ' ');
+ 350   2      
+ 351   2              BITEK_TxBurst(VP_SHOW_TITLE, TITLE_WIDTH, apbTitle[ bSARADC_VR_CH ]);
+ 352   2      
+ 353   2              OSD_ShowValue(VP_SHOW_VALUE, bVR_Value, 100, ' ');
+ 354   2              OSD_ShowProgressBar(VP_SHOW_BAR, bVR_Value);
+ 355   2      
+ 356   2              switch (bSARADC_VR_CH)
+ 357   2              {
+ 358   3                  case SARADC_VR_BRIGHTNESS:
+ 359   3                  default:
+ 360   3                      VP_SetBrightness(bVR_Value);
+ 361   3                      break;
+ 362   3      
+ 363   3                  case SARADC_VR_CONTRAST:
+ 364   3                      VP_SetContrast(bVR_Value);
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 7   
+
+ 365   3                      break;
+ 366   3      
+ 367   3                  case SARADC_VR_SATURATION:
+ 368   3                      VP_SetSaturation(bVR_Value);
+ 369   3                      break;
+ 370   3              } // switch
+ 371   2      
+ 372   2              BITEK_TxByte(BITEK_12D_OSD2_ATTR2, OSD2_ON);
+ 373   2              bOSD_Cnt = OSD_AUTO_START;
+ 374   2          }
+ 375   1      
+ 376   1          #else
+              
+                  SARADC_VR_Update();
+              
+                  #if (SARADC_IN_MODE == SARADC_IN_SINGLE)
+                  bSARADC_VR_CH = (bSARADC_VR_CH + 1) % SARADC_VR_SIZE;
+              
+                  // Update SARADC1 CH !
+                  BITEK_TxByte(BITEK_1A1_SARADC12_SEL, SARADC_IN_MODE | SARADC2_CH1 | abVR_1A1[ bSARADC_VR_CH ]);
+                  #endif // SARADC_IN_MODE
+              
+                  #endif // SARADC_INT
+ 388   1      } /* SARADC_VR_Task */
+ 389          #endif
+ 390          
+ 391          
+ 392          #if (SARADC_VR_UPDATE)
+              /* -------------------------------------------------------------------
+                  Name: SARADC_VR_Update -
+                  Purpose:
+                  Passed: None.
+                  Returns: None.
+                  Notes:
+                 ------------------------------------------------------------------- */
+              void SARADC_VR_Update (void)
+              {
+                  UB8 bVR_Value;
+                  UB8 bVR_Delta;
+              
+              
+                  bVR_New = BITEK_RxByte(BITEK_1AA_SARADC_OUT_I_MSB);
+              
+                  if (bVR_New > abVR_Old[ bSARADC_VR_CH ])
+                      bVR_Delta = bVR_New - abVR_Old[ bSARADC_VR_CH ];
+                  else
+                      bVR_Delta = abVR_Old[ bSARADC_VR_CH ] - bVR_New;
+              
+                  // Hysteresis
+                  if (bVR_Delta >= VR_THRESHOLD)
+                  {
+                      // Update VR value
+                      abVR_Old[ bSARADC_VR_CH ] = bVR_New;
+              
+                      bVR_Value = SARADC_VR_Value();
+              
+                      BITEK_TxRepeat(VP_SHOW_OSD2, OSD2_AREA, ' ');
+              
+                      BITEK_TxBurst(VP_SHOW_TITLE, TITLE_WIDTH, apbTitle[ bSARADC_VR_CH ]);
+              
+                      OSD_ShowValue(VP_SHOW_VALUE, bVR_Value, 100, ' ');
+                      OSD_ShowProgressBar(VP_SHOW_BAR, bVR_Value);
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 8   
+
+              
+                      switch (bSARADC_VR_CH)
+                      {
+                          case SARADC_VR_BRIGHTNESS:
+                          default:
+                              VP_SetBrightness(bVR_Value);
+                              break;
+              
+                          case SARADC_VR_CONTRAST:
+                              VP_SetContrast(bVR_Value);
+                              break;
+              
+                          case SARADC_VR_SATURATION:
+                              VP_SetSaturation(bVR_Value);
+                              break;
+                      } // switch
+              
+                      BITEK_TxByte(BITEK_12D_OSD2_ATTR2, OSD2_ON);
+                      bOSD_Cnt = OSD_AUTO_START;
+                  }
+              } // SARADC_VR_Update
+              #endif
+ 449          
+ 450          
+ 451          #if (SARADC_VR_VALUE)
+ 452          /* -------------------------------------------------------------------
+ 453              Name: SARADC_VR_Value -
+ 454              Purpose:
+ 455              Passed: None.
+ 456              Returns: 0..30
+ 457              Notes:
+ 458             ------------------------------------------------------------------- */
+ 459          UB8 SARADC_VR_Value (void)
+ 460          {
+ 461   1          if (bVR_New > VR_CRITERIA)
+ 462   1              return( VR_OSD_DEFAULT );
+ 463   1          else if (bVR_New > VR_HIGH)
+ 464   1              return( VR_OSD_MAX );
+ 465   1          else if (bVR_New < VR_LOW)
+ 466   1              return( VR_OSD_MIN );
+ 467   1          else
+ 468   1              return( (bVR_New - VR_LOW) / VR_STEP );
+ 469   1      } // SARADC_VR_Value
+ 470          #endif
+ 471          
+ 472          
+ 473          
+ 474          
+ 475          /* -------------------------------------------------------------------
+ 476              Name:  -
+ 477              Purpose: .
+ 478              Passed: None.
+ 479              Returns: None.
+ 480              Notes:
+ 481             ------------------------------------------------------------------- */
+ 482          
+ 483          
+ 484          /* **********************************************************************
+ 485          
+ 486              Description:
+ 487          
+ 488          
+C51 COMPILER V9.54   SARADC                                                                10/20/2015 11:39:07 PAGE 9   
+
+ 489             ********************************************************************** */
+ 490          
+ 491          /* %% End Of File %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    275    ----
+   CONSTANT SIZE    =     39    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      9       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

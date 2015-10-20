@@ -1,0 +1,180 @@
+C51 COMPILER V9.54   POR                                                                   10/20/2015 11:39:08 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE POR
+OBJECT MODULE PLACED IN .\OBJ\POR.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE POR.C OPTIMIZE(9,SIZE) REGFILE(.\OBJ\TEST_CVRI.ORC) BROWSE NOAREGS PRINT
+                    -(.\LST\POR.lst) TABS(2) OBJECT(.\OBJ\POR.obj)
+
+line level    source
+
+   1          /* **********************************************************************
+   2          
+   3                   Copyright (c) 2002-2013 Beyond Innovation Technology Co., Ltd
+   4          
+   5                  All rights are reserved. Reproduction in whole or in parts is
+   6              prohibited without the prior written consent of the copyright owner.
+   7          
+   8             ----------------------------------------------------------------------
+   9              Software License Agreement
+  10          
+  11              The software supplied herewith by Beyond Innovation Technology Co., Ltd
+  12              (the "Company") is intended and supplied to you, the Company's
+  13              customer, for use solely and exclusively on BiTEK products.
+  14          
+  15              The software is owned by the Company and/or its supplier, and is
+  16              protected under applicable copyright laws. All rights are reserved.
+  17              Any use in violation of the foregoing restrictions may subject the
+  18              user to criminal sanctions under applicable laws, as well as to
+  19              civil liability for the breach of the terms and conditions of this
+  20              license.
+  21          
+  22              THIS SOFTWARE IS PROVIDED IN AN "AS IS" CONDITION. NO WARRANTIES,
+  23              WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT NOT LIMITED
+  24              TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+  25              PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. THE COMPANY SHALL NOT,
+  26              IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL OR
+  27              CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  28          
+  29             ----------------------------------------------------------------------
+  30          
+  31              Module: POR.C - Power-On-Reset.
+  32          
+  33              Purpose: Implementation of POR module.
+  34          
+  35              Version: 0.01                                   08:19PM  2013/03/30
+  36          
+  37              Compiler: Keil 8051 C Compiler v9.51
+  38          
+  39              Reference:
+  40          
+  41             ----------------------------------------------------------------------
+  42              Modification:
+  43          
+  44              v0.01 08:19PM  2013/03/30 Jeffrey Chang
+  45              Reason:
+  46                  1. Original.
+  47              Solution:
+  48          
+  49             ********************************************************************** */
+  50          
+  51          #define _POR_C_
+  52          
+  53          /* ------------------------------------
+  54              Header Files
+C51 COMPILER V9.54   POR                                                                   10/20/2015 11:39:08 PAGE 2   
+
+  55             ------------------------------------ */
+  56          #include "bit1618c.h"
+  57          #include "bitek.h"
+  58          #include "mcu.h"
+  59          #include "osd.h"
+  60          #include "por.h"
+  61          #include "saradc.h"
+  62          #include "timer.h"
+  63          #include "vp.h"
+  64          
+  65          
+  66          /* ------------------------------------
+  67              Macro Definitions
+  68             ------------------------------------ */
+  69          
+  70          /* ------------------------------------
+  71              Type Definitions
+  72             ------------------------------------ */
+  73          
+  74          
+  75          /* ------------------------------------
+  76              Variables Definitions
+  77             ------------------------------------ */
+  78          
+  79          /* ------------------------------------
+  80              Function Prototypes
+  81             ------------------------------------ */
+  82          
+  83          
+  84          /* -------------------------------------------------------------------
+  85              Name: POR_Init -
+  86              Purpose: To initialize system power-on reset module.
+  87              Passed: None.
+  88              Returns: None.
+  89              Notes:
+  90             ------------------------------------------------------------------- */
+  91          void POR_Init (void)
+  92          {
+  93   1          /* Initiate VP */
+  94   1          VP_Init();          // To disable Watchdog Timer !
+  95   1      
+  96   1      
+  97   1          // Note !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  98   1          // Keep VP_Init(); first !
+  99   1          // Note !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 100   1      
+ 101   1          /* Initiate MCU */
+ 102   1          MCU_Init();
+ 103   1      
+ 104   1      
+ 105   1          /* Initiate TIMER */
+ 106   1          TIMER_Init();
+ 107   1      
+ 108   1          /* Initiate SARADC */
+ 109   1          SARADC_Init();
+ 110   1      
+ 111   1          /* Initiate PANEL */
+ 112   1        //PANEL_Init();
+ 113   1      
+ 114   1          /* Initiate OSD */
+ 115   1          OSD_Init();
+ 116   1      
+C51 COMPILER V9.54   POR                                                                   10/20/2015 11:39:08 PAGE 3   
+
+ 117   1      
+ 118   1      
+ 119   1          // Note !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 120   1          // Keep OSD and AOSD off !
+ 121   1          // Note !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 122   1      
+ 123   1          // 0x00E[5]=1 (BCLK=LCLK)
+ 124   1        //BITEK_TxByte(BITEK_00E_CLK_ATTR4, 0x9F);
+ 125   1      
+ 126   1          // To setup FLASH BANK !
+ 127   1        //BITEK_TxByte(BITEK_010_M8051_FLASHBANK, 0x00);
+ 128   1      
+ 129   1      
+ 130   1          /* [4]87 Enable all interrupts */
+ 131   1        //EA = 1;
+ 132   1          MCU_SETUP_INT();
+ 133   1      } /* POR_Init */
+ 134          
+ 135          
+ 136          /* -------------------------------------------------------------------
+ 137              Name:  -
+ 138              Purpose: .
+ 139              Passed: None.
+ 140              Returns: None.
+ 141              Notes:
+ 142             ------------------------------------------------------------------- */
+ 143          
+ 144          
+ 145          /* **********************************************************************
+ 146          
+ 147              Description:
+ 148          
+ 149          
+ 150             ********************************************************************** */
+ 151          
+ 152          /* %% End Of File %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     18    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
